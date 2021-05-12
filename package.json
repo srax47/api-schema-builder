@@ -51,16 +51,16 @@
     "Gal Cohen"
   ],
   "dependencies": {
-    "ajv": "^6.12.6",
+    "ajv": "^8.3.0",
     "clone-deep": "^4.0.1",
     "decimal.js": "^10.2.1",
-    "js-yaml": "^3.14.1",
+    "js-yaml": "^4.1.0",
     "json-schema-deref-sync": "^0.14.0",
-    "openapi-schema-validator": "^3.0.3",
+    "openapi-schema-validator": "^8.0.0",
     "swagger-parser": "^10.0.2"
   },
   "devDependencies": {
-    "ajv-keywords": "^3.5.2",
+    "ajv-keywords": "^5.0.0",
     "chai": "^4.3.3",
     "chai-as-promised": "^7.1.1",
     "coveralls": "^3.1.0",
