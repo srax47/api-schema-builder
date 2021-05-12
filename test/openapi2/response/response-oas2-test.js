@@ -1,9 +1,10 @@
 'use strict';
 
-let chai = require('chai'),
-    expect = chai.expect,
-    schemaValidatorGenerator = require('../../../src/index'),
-    path = require('path');
+const chai = require('chai');
+const expect = chai.expect;
+const schemaValidatorGenerator = require('../../../src/index');
+const path = require('path');
+const range = require('ajv-keywords/dist/keywords/range');
 
 describe('oai2 - response tests', function () {
     describe('check body and headers', () => {
@@ -13,93 +14,101 @@ describe('oai2 - response tests', function () {
             schema = schemaValidatorGenerator.buildSchemaSync(swaggerPath, {});
         });
         it('valid empty response - should not have validator', function () {
-            let schemaEndpoint = schema['/pet-with-empty-body']['delete'].responses['204'];
+            const schemaEndpoint = schema['/pet-with-empty-body'].delete.responses['204'];
             expect(schemaEndpoint).to.be.undefined;
         });
         it('valid body and bad headers validation', function () {
-            let schemaEndpoint = schema['/pet-with-body-header']['get'].responses['200'];
-            let validatorMatch = schemaEndpoint.validate({ body: {
-                id: 321,
-                name: 'Roxy'
-            },
-            headers: {
-                'x-next': {}
-            } });
+            const schemaEndpoint = schema['/pet-with-body-header'].get.responses['200'];
+            const validatorMatch = schemaEndpoint.validate({
+                body: {
+                    id: 321,
+                    name: 'Roxy'
+                },
+                headers: {
+                    'x-next': {}
+                }
+            });
             expect(schemaEndpoint.errors).to.be.eql([
                 {
-                    'dataPath': ".headers['x-next']",
-                    'keyword': 'type',
-                    'message': 'should be string',
-                    'params': {
-                        'type': 'string'
+                    dataPath: ".headers['x-next']",
+                    keyword: 'type',
+                    message: 'should be string',
+                    params: {
+                        type: 'string'
                     },
-                    'schemaPath': '#/headers/properties/x-next/type'
+                    schemaPath: '#/headers/properties/x-next/type'
                 }
             ]);
             expect(validatorMatch).to.be.false;
         });
         it('valid headers and bad body validation', function () {
-            let schemaEndpoint = schema['/pet-with-body-header']['get'].responses['200'];
-            let validatorMatch = schemaEndpoint.validate({ body: {
-                id: 321,
-                name: []
-            },
-            headers: {
-                'x-next': 123
-            } });
+            const schemaEndpoint = schema['/pet-with-body-header'].get.responses['200'];
+            const validatorMatch = schemaEndpoint.validate({
+                body: {
+                    id: 321,
+                    name: []
+                },
+                headers: {
+                    'x-next': 123
+                }
+            });
             expect(schemaEndpoint.errors).to.be.eql([
                 {
-                    'dataPath': '.body.name',
-                    'keyword': 'type',
-                    'message': 'should be string',
-                    'params': {
-                        'type': 'string'
+                    dataPath: '.body.name',
+                    keyword: 'type',
+                    message: 'should be string',
+                    params: {
+                        type: 'string'
                     },
-                    'schemaPath': '#/body/properties/name/type'
+                    schemaPath: '#/body/properties/name/type'
                 }
             ]);
             expect(validatorMatch).to.be.false;
         });
         it('bad headers and body validation', function () {
-            let schemaEndpoint = schema['/pet-with-body-header']['get'].responses['200'];
-            let validatorMatch = schemaEndpoint.validate({ body: {
-                id: 321,
-                name: []
-            },
-            headers: {
-                'x-next': {}
-            } });
+            const schemaEndpoint = schema['/pet-with-body-header'].get.responses['200'];
+            const validatorMatch = schemaEndpoint.validate({
+                body: {
+                    id: 321,
+                    name: []
+                },
+                headers: {
+                    'x-next': {}
+                }
+            });
             expect(schemaEndpoint.errors).to.be.eql([
                 {
-                    'dataPath': '.body.name',
-                    'keyword': 'type',
-                    'message': 'should be string',
-                    'params': {
-                        'type': 'string'
+                    dataPath: '.body.name',
+                    keyword: 'type',
+                    message: 'should be string',
+                    params: {
+                        type: 'string'
                     },
-                    'schemaPath': '#/body/properties/name/type'
+                    schemaPath: '#/body/properties/name/type'
                 },
                 {
-                    'dataPath': ".headers['x-next']",
-                    'keyword': 'type',
-                    'message': 'should be string',
-                    'params': {
-                        'type': 'string'
+                    dataPath: ".headers['x-next']",
+                    keyword: 'type',
+                    message: 'should be string',
+                    params: {
+                        type: 'string'
                     },
-                    'schemaPath': '#/headers/properties/x-next/type'
+                    schemaPath: '#/headers/properties/x-next/type'
                 }
             ]);
             expect(validatorMatch).to.be.false;
         });
         it('valid headers and body validation', function () {
-            let schemaEndpoint = schema['/pet-with-body-header']['get'].responses['200'];
-            let validatorMatch = schemaEndpoint.validate({ body: {
-                id: 321,
-                name: 'Roxy'
-            },
-            headers: {
-                'x-next': 123
-            } });
+            const schemaEndpoint = schema['/pet-with-body-header'].get.responses['200'];
+            const validatorMatch = schemaEndpoint.validate({
+                body: {
+                    id: 321,
+                    name: 'Roxy'
+                },
+                headers: {
+                    'x-next': 123
+                }
+            });
             expect(schemaEndpoint.errors).to.be.equal(null);
             expect(validatorMatch).to.be.true;
         });
@@ -114,331 +123,365 @@ describe('oai2 - response tests', function () {
             });
 
             it('valid response - should pass validation', function () {
-                let schemaEndpoint = schema['/pets/:petId']['get'].responses['200'];
-                let validatorMatch = schemaEndpoint.validate({ body: {
-                    id: 1,
-                    name: 'Roxy'
-                } });
+                const schemaEndpoint = schema['/pets/:petId'].get.responses['200'];
+                const validatorMatch = schemaEndpoint.validate({
+                    body: {
+                        id: 1,
+                        name: 'Roxy'
+                    }
+                });
                 expect(schemaEndpoint.errors).to.be.equal(null);
                 expect(validatorMatch).to.be.true;
             });
             it('bad body - wrong type integer', function () {
-                let schemaEndpoint = schema['/pets/:petId']['get'].responses['200'];
-                let validatorMatch = schemaEndpoint.validate({ body: {
-                    id: '321',
-                    name: 'Roxy'
-                } });
+                const schemaEndpoint = schema['/pets/:petId'].get.responses['200'];
+                const validatorMatch = schemaEndpoint.validate({
+                    body: {
+                        id: '321',
+                        name: 'Roxy'
+                    }
+                });
                 expect(schemaEndpoint.errors).to.be.eql([
                     {
-                        'dataPath': '.body.id',
-                        'keyword': 'type',
-                        'message': 'should be integer',
-                        'params': {
-                            'type': 'integer'
+                        dataPath: '.body.id',
+                        keyword: 'type',
+                        message: 'should be integer',
+                        params: {
+                            type: 'integer'
                         },
-                        'schemaPath': '#/body/properties/id/type'
+                        schemaPath: '#/body/properties/id/type'
                     }
                 ]);
                 expect(validatorMatch).to.be.false;
             });
             it('bad body - wrong type object', function () {
-                let schemaEndpoint = schema['/pet-with-object']['get'].responses['200'];
-                let validatorMatch = schemaEndpoint.validate({ body: {
-                    field2: 321
-                } });
+                const schemaEndpoint = schema['/pet-with-object'].get.responses['200'];
+                const validatorMatch = schemaEndpoint.validate({
+                    body: {
+                        field2: 321
+                    }
+                });
 
                 expect(schemaEndpoint.errors).to.be.eql([
                     {
-                        'dataPath': '.body.field2',
-                        'keyword': 'type',
-                        'message': 'should be object',
-                        'params': {
-                            'type': 'object'
+                        dataPath: '.body.field2',
+                        keyword: 'type',
+                        message: 'should be object',
+                        params: {
+                            type: 'object'
                         },
-                        'schemaPath': '#/body/properties/field2/type'
+                        schemaPath: '#/body/properties/field2/type'
                     }
                 ]);
                 expect(validatorMatch).to.be.false;
             });
             it('bad body - missing required params', function () {
-                let schemaEndpoint = schema['/pets/:petId']['get'].responses['200'];
-                let validatorMatch = schemaEndpoint.validate({ body: {
-                    name: 'Roxy'
-                } });
+                const schemaEndpoint = schema['/pets/:petId'].get.responses['200'];
+                const validatorMatch = schemaEndpoint.validate({
+                    body: {
+                        name: 'Roxy'
+                    }
+                });
 
                 expect(schemaEndpoint.errors).to.be.eql([
                     {
-                        'dataPath': '.body',
-                        'keyword': 'required',
-                        'message': "should have required property 'id'",
-                        'params': {
-                            'missingProperty': 'id'
+                        dataPath: '.body',
+                        keyword: 'required',
+                        message: "should have required property 'id'",
+                        params: {
+                            missingProperty: 'id'
                         },
-                        'schemaPath': '#/body/required'
+                        schemaPath: '#/body/required'
                     }
                 ]);
                 expect(validatorMatch).to.be.false;
             });
             it('bad body - missing required object attribute', function () {
-                let schemaEndpoint = schema['/pet-with-object']['get'].responses['200'];
-                let validatorMatch = schemaEndpoint.validate({ body: {} });
+                const schemaEndpoint = schema['/pet-with-object'].get.responses['200'];
+                const validatorMatch = schemaEndpoint.validate({ body: {} });
 
                 expect(schemaEndpoint.errors).to.be.eql([
                     {
-                        'dataPath': '.body',
-                        'keyword': 'required',
-                        'message': "should have required property 'field2'",
-                        'params': {
-                            'missingProperty': 'field2'
+                        dataPath: '.body',
+                        keyword: 'required',
+                        message: "should have required property 'field2'",
+                        params: {
+                            missingProperty: 'field2'
                         },
-                        'schemaPath': '#/body/required'
+                        schemaPath: '#/body/required'
                     }
                 ]);
                 expect(validatorMatch).to.be.false;
             });
             it('bad body - wrong enum value', function () {
-                let schemaEndpoint = schema['/pet-with-enum']['get'].responses['200'];
-                let validatorMatch = schemaEndpoint.validate({ body: {
-                    field1: 'enum3'
-                } });
+                const schemaEndpoint = schema['/pet-with-enum'].get.responses['200'];
+                const validatorMatch = schemaEndpoint.validate({
+                    body: {
+                        field1: 'enum3'
+                    }
+                });
 
                 expect(schemaEndpoint.errors).to.be.eql([
                     {
-                        'dataPath': '.body.field1',
-                        'keyword': 'enum',
-                        'message': 'should be equal to one of the allowed values',
-                        'params': {
-                            'allowedValues': [
+                        dataPath: '.body.field1',
+                        keyword: 'enum',
+                        message: 'should be equal to one of the allowed values',
+                        params: {
+                            allowedValues: [
                                 'enum1',
                                 'enum2'
                             ]
                         },
-                        'schemaPath': '#/body/properties/field1/enum'
+                        schemaPath: '#/body/properties/field1/enum'
                     }
                 ]);
                 expect(validatorMatch).to.be.false;
             });
             it('bad body - wrong type in array item body (second item)', function () {
-                let schemaEndpoint = schema['/pet-with-array']['get'].responses['200'];
-                let validatorMatch = schemaEndpoint.validate({ body: [{
-                    field1: 'good_field'
-                },
-                {
-                    field1: 111
-                }] });
+                const schemaEndpoint = schema['/pet-with-array'].get.responses['200'];
+                const validatorMatch = schemaEndpoint.validate({
+                    body: [{
+                        field1: 'good_field'
+                    },
+                    {
+                        field1: 111
+                    }]
+                });
 
                 expect(schemaEndpoint.errors).to.be.eql([
                     {
-                        'dataPath': '.body[1].field1',
-                        'keyword': 'type',
-                        'message': 'should be string',
-                        'params': {
-                            'type': 'string'
+                        dataPath: '.body[1].field1',
+                        keyword: 'type',
+                        message: 'should be string',
+                        params: {
+                            type: 'string'
                         },
-                        'schemaPath': '#/body/items/properties/field1/type'
+                        schemaPath: '#/body/items/properties/field1/type'
                     }
                 ]);
                 expect(validatorMatch).to.be.false;
             });
             it('bad body - wrong type body (should be an array)', function () {
-                let schemaEndpoint = schema['/pet-with-array']['get'].responses['200'];
-                let validatorMatch = schemaEndpoint.validate({ body: {
-                    field1: 'good_field'
-                } });
+                const schemaEndpoint = schema['/pet-with-array'].get.responses['200'];
+                const validatorMatch = schemaEndpoint.validate({
+                    body: {
+                        field1: 'good_field'
+                    }
+                });
 
                 expect(schemaEndpoint.errors).to.be.eql([
                     {
-                        'dataPath': '.body',
-                        'keyword': 'type',
-                        'message': 'should be array',
-                        'params': {
-                            'type': 'array'
+                        dataPath: '.body',
+                        keyword: 'type',
+                        message: 'should be array',
+                        params: {
+                            type: 'array'
                         },
-                        'schemaPath': '#/body/type'
+                        schemaPath: '#/body/type'
                     }
                 ]);
                 expect(validatorMatch).to.be.false;
             });
             it('valid nested response - should pass validation', function () {
-                let schemaEndpoint = schema['/pet-with-object']['get'].responses['200'];
-                let validatorMatch = schemaEndpoint.validate({ body: {
-                    field2: {
-                        field3: 321
+                const schemaEndpoint = schema['/pet-with-object'].get.responses['200'];
+                const validatorMatch = schemaEndpoint.validate({
+                    body: {
+                        field2: {
+                            field3: 321
+                        }
                     }
-                } });
+                });
                 expect(schemaEndpoint.errors).to.be.equal(null);
                 expect(validatorMatch).to.be.true;
             });
             it('bad body - missing required nested attribute', function () {
-                let schemaEndpoint = schema['/pet-with-object']['get'].responses['200'];
-                let validatorMatch = schemaEndpoint.validate({ body: {
-                    field2: {}
-                } });
+                const schemaEndpoint = schema['/pet-with-object'].get.responses['200'];
+                const validatorMatch = schemaEndpoint.validate({
+                    body: {
+                        field2: {}
+                    }
+                });
 
                 // todo - the error doesnt looks good
                 expect(schemaEndpoint.errors).to.be.eql([
                     {
-                        'dataPath': '.body.field2',
-                        'keyword': 'required',
-                        'message': "should have required property 'field3'",
-                        'params': {
-                            'missingProperty': 'field3'
+                        dataPath: '.body.field2',
+                        keyword: 'required',
+                        message: "should have required property 'field3'",
+                        params: {
+                            missingProperty: 'field3'
                         },
-                        'schemaPath': '#/body/properties/field2/required'
+                        schemaPath: '#/body/properties/field2/required'
                     }
                 ]);
                 expect(validatorMatch).to.be.false;
             });
             it('bad body - wrong type nested attribute', function () {
-                let schemaEndpoint = schema['/pet-with-object']['get'].responses['200'];
-                let validatorMatch = schemaEndpoint.validate({ body: {
-                    field2: {
-                        field3: ''
+                const schemaEndpoint = schema['/pet-with-object'].get.responses['200'];
+                const validatorMatch = schemaEndpoint.validate({
+                    body: {
+                        field2: {
+                            field3: ''
+                        }
                     }
-                } });
+                });
 
                 expect(schemaEndpoint.errors).to.be.eql([
                     {
-                        'dataPath': '.body.field2.field3',
-                        'keyword': 'type',
-                        'message': 'should be integer',
-                        'params': {
-                            'type': 'integer'
+                        dataPath: '.body.field2.field3',
+                        keyword: 'type',
+                        message: 'should be integer',
+                        params: {
+                            type: 'integer'
                         },
-                        'schemaPath': '#/body/properties/field2/properties/field3/type'
+                        schemaPath: '#/body/properties/field2/properties/field3/type'
                     }
                 ]);
                 expect(validatorMatch).to.be.false;
             });
             it('valid default body', function () {
-                let schemaEndpoint = schema['/pet-with-object']['get'].responses['default'];
-                let validatorMatch = schemaEndpoint.validate({ body: {
-                    code: 321,
-                    message: 'msg'
-                },
-                headers: {} });
+                const schemaEndpoint = schema['/pet-with-object'].get.responses.default;
+                const validatorMatch = schemaEndpoint.validate({
+                    body: {
+                        code: 321,
+                        message: 'msg'
+                    },
+                    headers: {}
+                });
 
                 expect(schemaEndpoint.errors).to.be.eql(null);
                 expect(validatorMatch).to.be.true;
             });
             it('missing field in default body', function () {
-                let schemaEndpoint = schema['/pet-with-object']['get'].responses['default'];
-                let validatorMatch = schemaEndpoint.validate({ body: {
-                    code: 321
-                },
-                headers: {} });
+                const schemaEndpoint = schema['/pet-with-object'].get.responses.default;
+                const validatorMatch = schemaEndpoint.validate({
+                    body: {
+                        code: 321
+                    },
+                    headers: {}
+                });
 
                 expect(schemaEndpoint.errors).to.be.eql([
                     {
-                        'dataPath': '.body',
-                        'keyword': 'required',
-                        'message': "should have required property 'message'",
-                        'params': {
-                            'missingProperty': 'message'
+                        dataPath: '.body',
+                        keyword: 'required',
+                        message: "should have required property 'message'",
+                        params: {
+                            missingProperty: 'message'
                         },
-                        'schemaPath': '#/body/required'
+                        schemaPath: '#/body/required'
                     }
                 ]);
                 expect(validatorMatch).to.be.false;
             });
             it('wrong field type in default body', function () {
-                let schemaEndpoint = schema['/pet-with-object']['get'].responses['default'];
-                let validatorMatch = schemaEndpoint.validate({ body: {
-                    code: 321,
-                    message: 321
-                },
-                headers: {} });
+                const schemaEndpoint = schema['/pet-with-object'].get.responses.default;
+                const validatorMatch = schemaEndpoint.validate({
+                    body: {
+                        code: 321,
+                        message: 321
+                    },
+                    headers: {}
+                });
 
                 expect(schemaEndpoint.errors).to.be.eql([
                     {
-                        'dataPath': '.body.message',
-                        'keyword': 'type',
-                        'message': 'should be string',
-                        'params': {
-                            'type': 'string'
+                        dataPath: '.body.message',
+                        keyword: 'type',
+                        message: 'should be string',
+                        params: {
+                            type: 'string'
                         },
-                        'schemaPath': '#/body/properties/message/type'
+                        schemaPath: '#/body/properties/message/type'
                     }
                 ]);
                 expect(validatorMatch).to.be.false;
             });
             it('bad body - quantitive test', function () {
-                let schemaEndpoint = schema['/many-body-fields']['post'].responses['200'];
-                let validatorMatch = schemaEndpoint.validate({ body: { 'fieldNum1': 'name1',
-                    'fieldNum2': 'name2',
-                    'fieldNum3': 'name3',
-                    'fieldStr1': 1,
-                    'fieldStr2': 2,
-                    'fieldStr3': 3 },
-                headers: {} });
+                const schemaEndpoint = schema['/many-body-fields'].post.responses['200'];
+                const validatorMatch = schemaEndpoint.validate({
+                    body: {
+                        fieldNum1: 'name1',
+                        fieldNum2: 'name2',
+                        fieldNum3: 'name3',
+                        fieldStr1: 1,
+                        fieldStr2: 2,
+                        fieldStr3: 3
+                    },
+                    headers: {}
+                });
 
                 expect(schemaEndpoint.errors).to.be.eql([
                     {
-                        'keyword': 'type',
-                        'dataPath': '.body.fieldNum1',
-                        'schemaPath': '#/body/properties/fieldNum1/type',
-                        'params': {
-                            'type': 'integer'
+                        keyword: 'type',
+                        dataPath: '.body.fieldNum1',
+                        schemaPath: '#/body/properties/fieldNum1/type',
+                        params: {
+                            type: 'integer'
                         },
-                        'message': 'should be integer'
+                        message: 'should be integer'
                     },
                     {
-                        'keyword': 'type',
-                        'dataPath': '.body.fieldNum2',
-                        'schemaPath': '#/body/properties/fieldNum2/type',
-                        'params': {
-                            'type': 'integer'
+                        keyword: 'type',
+                        dataPath: '.body.fieldNum2',
+                        schemaPath: '#/body/properties/fieldNum2/type',
+                        params: {
+                            type: 'integer'
                         },
-                        'message': 'should be integer'
+                        message: 'should be integer'
                     },
                     {
-                        'keyword': 'type',
-                        'dataPath': '.body.fieldNum3',
-                        'schemaPath': '#/body/properties/fieldNum3/type',
-                        'params': {
-                            'type': 'integer'
+                        keyword: 'type',
+                        dataPath: '.body.fieldNum3',
+                        schemaPath: '#/body/properties/fieldNum3/type',
+                        params: {
+                            type: 'integer'
                         },
-                        'message': 'should be integer'
+                        message: 'should be integer'
                     },
                     {
-                        'keyword': 'type',
-                        'dataPath': '.body.fieldStr1',
-                        'schemaPath': '#/body/properties/fieldStr1/type',
-                        'params': {
-                            'type': 'string'
+                        keyword: 'type',
+                        dataPath: '.body.fieldStr1',
+                        schemaPath: '#/body/properties/fieldStr1/type',
+                        params: {
+                            type: 'string'
                         },
-                        'message': 'should be string'
+                        message: 'should be string'
                     },
                     {
-                        'keyword': 'type',
-                        'dataPath': '.body.fieldStr2',
-                        'schemaPath': '#/body/properties/fieldStr2/type',
-                        'params': {
-                            'type': 'string'
+                        keyword: 'type',
+                        dataPath: '.body.fieldStr2',
+                        schemaPath: '#/body/properties/fieldStr2/type',
+                        params: {
+                            type: 'string'
                         },
-                        'message': 'should be string'
+                        message: 'should be string'
                     },
                     {
-                        'keyword': 'type',
-                        'dataPath': '.body.fieldStr3',
-                        'schemaPath': '#/body/properties/fieldStr3/type',
-                        'params': {
-                            'type': 'string'
+                        keyword: 'type',
+                        dataPath: '.body.fieldStr3',
+                        schemaPath: '#/body/properties/fieldStr3/type',
+                        params: {
+                            type: 'string'
                         },
-                        'message': 'should be string'
+                        message: 'should be string'
                     }
                 ]);
                 expect(validatorMatch).to.be.false;
             });
             it('valid body - quantitive test', function () {
-                let schemaEndpoint = schema['/many-body-fields']['post'].responses['200'];
-                let validatorMatch = schemaEndpoint.validate({ body: { 'fieldNum1': 1,
-                    'fieldNum2': 2,
-                    'fieldNum3': 3,
-                    'fieldStr1': 'name1',
-                    'fieldStr2': 'name2',
-                    'fieldStr3': 'name3' },
-                headers: {} });
+                const schemaEndpoint = schema['/many-body-fields'].post.responses['200'];
+                const validatorMatch = schemaEndpoint.validate({
+                    body: {
+                        fieldNum1: 1,
+                        fieldNum2: 2,
+                        fieldNum3: 3,
+                        fieldStr1: 'name1',
+                        fieldStr2: 'name2',
+                        fieldStr3: 'name3'
+                    },
+                    headers: {}
+                });
 
                 expect(schemaEndpoint.errors).to.be.eql(null);
                 expect(validatorMatch).to.be.true;
@@ -452,31 +495,35 @@ describe('oai2 - response tests', function () {
                 schema = schemaValidatorGenerator.buildSchemaSync(swaggerPath);
             });
             it('valid body with base path', function () {
-                let schemaEndpoint = schema['/v1/pets']['get'].responses['200'];
-                let validatorMatch = schemaEndpoint.validate({ headers: {},
+                const schemaEndpoint = schema['/v1/pets'].get.responses['200'];
+                const validatorMatch = schemaEndpoint.validate({
+                    headers: {},
                     body: [{
                         id: 321, name: 'kitty'
-                    }] });
+                    }]
+                });
 
                 expect(schemaEndpoint.errors).to.be.equal(null);
                 expect(validatorMatch).to.be.true;
             });
             it('invalid body with base path', function () {
-                let schemaEndpoint = schema['/v1/pets']['get'].responses['200'];
-                let validatorMatch = schemaEndpoint.validate({ headers: {},
+                const schemaEndpoint = schema['/v1/pets'].get.responses['200'];
+                const validatorMatch = schemaEndpoint.validate({
+                    headers: {},
                     body: [{
                         id: 321, name: []
-                    }] });
+                    }]
+                });
 
                 expect(schemaEndpoint.errors).to.be.eql([
                     {
-                        'dataPath': '.body[0].name',
-                        'keyword': 'type',
-                        'message': 'should be string',
-                        'params': {
-                            'type': 'string'
+                        dataPath: '.body[0].name',
+                        keyword: 'type',
+                        message: 'should be string',
+                        params: {
+                            type: 'string'
                         },
-                        'schemaPath': '#/body/items/properties/name/type'
+                        schemaPath: '#/body/items/properties/name/type'
                     }
                 ]);
                 expect(validatorMatch).to.be.false;
@@ -490,29 +537,32 @@ describe('oai2 - response tests', function () {
             });
 
             it('should pass', function () {
-                let schemaEndpoint = schema['/pets']['post'].responses['201'];
-                let validatorMatch = schemaEndpoint.validate({
+                const schemaEndpoint = schema['/pets'].post.responses['201'];
+                const validatorMatch = schemaEndpoint.validate({
                     headers: {},
                     body: {
                         petType: 'Dog',
                         name: 'name',
                         packSize: 3
-                    } });
+                    }
+                });
 
                 expect(schemaEndpoint.errors).to.be.equal(null);
                 expect(validatorMatch).to.be.true;
             });
             it('should fail for wrong value in discriminator', function () {
-                let schemaEndpoint = schema['/pets']['post'].responses['201'];
-                let validatorMatch = schemaEndpoint.validate({ body: {
-                    petType: 'dog',
-                    name: 'name',
-                    tag: 'tag',
-                    test: {
-                        field1: '1234'
-                    }
-                },
-                headers: {} });
+                const schemaEndpoint = schema['/pets'].post.responses['201'];
+                const validatorMatch = schemaEndpoint.validate({
+                    body: {
+                        petType: 'dog',
+                        name: 'name',
+                        tag: 'tag',
+                        test: {
+                            field1: '1234'
+                        }
+                    },
+                    headers: {}
+                });
 
                 expect(schemaEndpoint.errors.length).to.equal(1);
                 expect(schemaEndpoint.errors[0].message).to.equal('should be equal to one of the allowed values');
@@ -524,17 +574,19 @@ describe('oai2 - response tests', function () {
                 expect(validatorMatch).to.be.false;
             });
             it('should fail for missing discriminator key', function () {
-                let schemaEndpoint = schema['/pets']['post'].responses['201'];
-                let validatorMatch = schemaEndpoint.validate({ body: {
-                    name: 'name',
-                    tag: 'tag',
-                    test: {
-                        field1: '1234'
-                    }
-                },
-                headers: {
+                const schemaEndpoint = schema['/pets'].post.responses['201'];
+                const validatorMatch = schemaEndpoint.validate({
+                    body: {
+                        name: 'name',
+                        tag: 'tag',
+                        test: {
+                            field1: '1234'
+                        }
+                    },
+                    headers: {
 
-                } });
+                    }
+                });
 
                 expect(schemaEndpoint.errors.length).to.equal(1);
                 expect(schemaEndpoint.errors[0].message).to.equal('should be equal to one of the allowed values');
@@ -546,16 +598,18 @@ describe('oai2 - response tests', function () {
                 expect(validatorMatch).to.be.false;
             });
             it('should fail for missing attribute in inherited object (Dog)', function () {
-                let schemaEndpoint = schema['/pets']['post'].responses['201'];
-                let validatorMatch = schemaEndpoint.validate({ body: {
-                    petType: 'Dog',
-                    name: 'name',
-                    tag: 'tag',
-                    test: {
-                        field1: '1234'
-                    }
-                },
-                headers: {} });
+                const schemaEndpoint = schema['/pets'].post.responses['201'];
+                const validatorMatch = schemaEndpoint.validate({
+                    body: {
+                        petType: 'Dog',
+                        name: 'name',
+                        tag: 'tag',
+                        test: {
+                            field1: '1234'
+                        }
+                    },
+                    headers: {}
+                });
 
                 expect(schemaEndpoint.errors.length).to.equal(1);
                 expect(schemaEndpoint.errors[0].message).to.equal('should have required property \'packSize\'');
@@ -565,16 +619,18 @@ describe('oai2 - response tests', function () {
                 expect(validatorMatch).to.be.false;
             });
             it('should fail for missing attribute in inherited object (cat)', function () {
-                let schemaEndpoint = schema['/pets']['post'].responses['201'];
-                let validatorMatch = schemaEndpoint.validate({ body: {
-                    petType: 'Cat',
-                    name: 'name',
-                    tag: 'tag',
-                    test: {
-                        field1: '1234'
-                    }
-                },
-                headers: {} });
+                const schemaEndpoint = schema['/pets'].post.responses['201'];
+                const validatorMatch = schemaEndpoint.validate({
+                    body: {
+                        petType: 'Cat',
+                        name: 'name',
+                        tag: 'tag',
+                        test: {
+                            field1: '1234'
+                        }
+                    },
+                    headers: {}
+                });
 
                 expect(schemaEndpoint.errors.length).to.equal(1);
                 expect(schemaEndpoint.errors[0].message).to.be.eql('should have required property \'huntingSkill\'');
@@ -582,14 +638,16 @@ describe('oai2 - response tests', function () {
                 expect(validatorMatch).to.be.false;
             });
             it('should fail for missing attribute in inherited object (parent)', function () {
-                let schemaEndpoint = schema['/pets']['post'].responses['201'];
-                let validatorMatch = schemaEndpoint.validate({ body: {
-                    petType: 'Dog',
-                    tag: 'tag',
-                    packSize: 1,
-                    chip_number: '123454'
-                },
-                headers: {} });
+                const schemaEndpoint = schema['/pets'].post.responses['201'];
+                const validatorMatch = schemaEndpoint.validate({
+                    body: {
+                        petType: 'Dog',
+                        tag: 'tag',
+                        packSize: 1,
+                        chip_number: '123454'
+                    },
+                    headers: {}
+                });
 
                 expect(schemaEndpoint.errors.length).to.equal(1);
                 expect(schemaEndpoint.errors[0].message).to.be.equal('should have required property \'name\'');
@@ -611,112 +669,120 @@ describe('oai2 - response tests', function () {
             });
 
             it('bad header - wrong type', function () {
-                schemaEndpoint = schema['/pet-with-header']['get'].responses['200'];
+                schemaEndpoint = schema['/pet-with-header'].get.responses['200'];
 
-                let isValid = schemaEndpoint.validate({
+                const isValid = schemaEndpoint.validate({
                     headers: {
                         'x-next': []
-                    } });
+                    }
+                });
 
                 expect(schemaEndpoint.errors).to.be.eql([
                     {
-                        'dataPath': ".headers['x-next']",
-                        'keyword': 'type',
-                        'message': 'should be string',
-                        'params': {
-                            'type': 'string'
+                        dataPath: ".headers['x-next']",
+                        keyword: 'type',
+                        message: 'should be string',
+                        params: {
+                            type: 'string'
                         },
-                        'schemaPath': '#/headers/properties/x-next/type'
+                        schemaPath: '#/headers/properties/x-next/type'
                     }
                 ]);
                 expect(isValid).to.be.false;
             });
             it('bad header - invalid pattern', function () {
-                schemaEndpoint = schema['/pet-with-header']['get'].responses['200'];
+                schemaEndpoint = schema['/pet-with-header'].get.responses['200'];
 
-                let isValid = schemaEndpoint.validate({
+                const isValid = schemaEndpoint.validate({
                     headers: {
                         'pattern-header': '1dsa'
-                    } });
+                    }
+                });
 
                 expect(schemaEndpoint.errors).to.be.eql([
                     {
-                        'dataPath': ".headers['pattern-header']",
-                        'keyword': 'pattern',
-                        'message': 'should match pattern "^\\d{1,3}\\.\\d{1,3}$"',
-                        'params': {
-                            'pattern': '^\\d{1,3}\\.\\d{1,3}$'
+                        dataPath: ".headers['pattern-header']",
+                        keyword: 'pattern',
+                        message: 'should match pattern "^\\d{1,3}\\.\\d{1,3}$"',
+                        params: {
+                            pattern: '^\\d{1,3}\\.\\d{1,3}$'
                         },
-                        'schemaPath': '#/headers/properties/pattern-header/pattern'
+                        schemaPath: '#/headers/properties/pattern-header/pattern'
                     }
                 ]);
                 expect(isValid).to.be.false;
             });
             it('bad header - empty header', function () {
-                schemaEndpoint = schema['/pet-with-header']['get'].responses['200'];
+                schemaEndpoint = schema['/pet-with-header'].get.responses['200'];
 
-                let isValid = schemaEndpoint.validate({
+                const isValid = schemaEndpoint.validate({
                     headers: {
                         'minlength-header': ''
-                    } });
+                    }
+                });
 
                 expect(schemaEndpoint.errors).to.be.eql([
                     {
-                        'dataPath': ".headers['minlength-header']",
-                        'keyword': 'minLength',
-                        'message': 'should NOT be shorter than 1 characters',
-                        'params': {
-                            'limit': 1
+                        dataPath: ".headers['minlength-header']",
+                        keyword: 'minLength',
+                        message: 'should NOT be shorter than 1 characters',
+                        params: {
+                            limit: 1
                         },
-                        'schemaPath': '#/headers/properties/minlength-header/minLength'
+                        schemaPath: '#/headers/properties/minlength-header/minLength'
                     }
                 ]);
                 expect(isValid).to.be.false;
             });
             it('valid header', function () {
-                schemaEndpoint = schema['/pet-with-header']['get'].responses['200'];
+                schemaEndpoint = schema['/pet-with-header'].get.responses['200'];
 
-                let isValid = schemaEndpoint.validate({
+                const isValid = schemaEndpoint.validate({
                     headers: {
                         'minlength-header': 'aa',
                         'pattern-header': '1.0'
-                    } });
+                    }
+                });
 
                 expect(schemaEndpoint.errors).to.be.equal(null);
                 expect(isValid).to.be.true;
             });
             it('valid header - default response', function () {
-                let schemaEndpoint = schema['/pet-with-object']['get'].responses['default'];
-                let validatorMatch = schemaEndpoint.validate({ body: {
-                    code: 321,
-                    message: 'msg'
-                },
-                headers: {
-                    'x-next': '321'
-                } });
+                const schemaEndpoint = schema['/pet-with-object'].get.responses.default;
+                const validatorMatch = schemaEndpoint.validate({
+                    body: {
+                        code: 321,
+                        message: 'msg'
+                    },
+                    headers: {
+                        'x-next': '321'
+                    }
+                });
 
                 expect(schemaEndpoint.errors).to.be.eql(null);
                 expect(validatorMatch).to.be.true;
             });
             it('wrong field type - response body', function () {
-                let schemaEndpoint = schema['/pet-with-object']['get'].responses['default'];
-                let validatorMatch = schemaEndpoint.validate({ body: {
-                    code: 321,
-                    message: 'msg'
-                },
-                headers: {
-                    'x-next': {}
-                } });
+                const schemaEndpoint = schema['/pet-with-object'].get.responses.default;
+                const validatorMatch = schemaEndpoint.validate({
+                    body: {
+                        code: 321,
+                        message: 'msg'
+                    },
+                    headers: {
+                        'x-next': {}
+                    }
+                });
 
                 expect(schemaEndpoint.errors).to.be.eql([
                     {
-                        'dataPath': ".headers['x-next']",
-                        'keyword': 'type',
-                        'message': 'should be string',
-                        'params': {
-                            'type': 'string'
+                        dataPath: ".headers['x-next']",
+                        keyword: 'type',
+                        message: 'should be string',
+                        params: {
+                            type: 'string'
                         },
-                        'schemaPath': '#/headers/properties/x-next/type'
+                        schemaPath: '#/headers/properties/x-next/type'
                     }
                 ]);
                 expect(validatorMatch).to.be.false;
@@ -729,36 +795,40 @@ describe('oai2 - response tests', function () {
                 schema = schemaValidatorGenerator.buildSchemaSync(swaggerPath);
             });
             it('valid headers with base path', function () {
-                let schemaEndpoint = schema['/v1/pets']['get'].responses['200'];
-                let validatorMatch = schemaEndpoint.validate({ body: [{
-                    id: 321, name: 'kitty'
-                }],
-                headers: {
-                    'x-next': 123
-                } });
+                const schemaEndpoint = schema['/v1/pets'].get.responses['200'];
+                const validatorMatch = schemaEndpoint.validate({
+                    body: [{
+                        id: 321, name: 'kitty'
+                    }],
+                    headers: {
+                        'x-next': 123
+                    }
+                });
 
                 expect(schemaEndpoint.errors).to.be.equal(null);
                 expect(validatorMatch).to.be.true;
             });
 
             it('invalid headers with base path', function () {
-                let schemaEndpoint = schema['/v1/pets']['get'].responses['200'];
-                let validatorMatch = schemaEndpoint.validate({ body: [{
-                    id: 321, name: 'kitty'
-                }],
-                headers: {
-                    'x-next': []
-                } });
+                const schemaEndpoint = schema['/v1/pets'].get.responses['200'];
+                const validatorMatch = schemaEndpoint.validate({
+                    body: [{
+                        id: 321, name: 'kitty'
+                    }],
+                    headers: {
+                        'x-next': []
+                    }
+                });
 
                 expect(schemaEndpoint.errors).to.be.eql([
                     {
-                        'dataPath': ".headers['x-next']",
-                        'keyword': 'type',
-                        'message': 'should be string',
-                        'params': {
-                            'type': 'string'
+                        dataPath: ".headers['x-next']",
+                        keyword: 'type',
+                        message: 'should be string',
+                        params: {
+                            type: 'string'
                         },
-                        'schemaPath': '#/headers/properties/x-next/type'
+                        schemaPath: '#/headers/properties/x-next/type'
                     }
                 ]);
                 expect(validatorMatch).to.be.false;
@@ -776,8 +846,8 @@ describe('oai2 - response tests', function () {
                     });
                 });
                 it('more detailed content-type - should pass validation', function () {
-                    schemaEndpoint = schema['/pet-with-header']['get'].responses['200'];
-                    let isValid = schemaEndpoint.validate({
+                    schemaEndpoint = schema['/pet-with-header'].get.responses['200'];
+                    const isValid = schemaEndpoint.validate({
                         headers: {
                             'content-type': 'application/json; charset=utf-8',
                             'content-length': '1'
@@ -788,9 +858,9 @@ describe('oai2 - response tests', function () {
                     expect(isValid).to.be.true;
                 });
                 it('valid content-type when multiple content-types defined - should pass validation', function () {
-                    schemaEndpoint = schema['/text']['put'].responses['200'];
+                    schemaEndpoint = schema['/text'].put.responses['200'];
 
-                    let isValid = schemaEndpoint.validate({
+                    const isValid = schemaEndpoint.validate({
                         headers: {
                             'content-type': 'text/plain',
                             'content-length': '1'
@@ -802,9 +872,9 @@ describe('oai2 - response tests', function () {
                     expect(isValid).to.be.true;
                 });
                 it('bad response - wrong content-type (should be application/json)', function () {
-                    schemaEndpoint = schema['/text']['put'].responses['200'];
+                    schemaEndpoint = schema['/text'].put.responses['200'];
 
-                    let isValid = schemaEndpoint.validate({
+                    const isValid = schemaEndpoint.validate({
                         headers: {
                             'content-type': 'application/x-www-form-urlencoded',
                             'content-length': '1'
@@ -826,9 +896,9 @@ describe('oai2 - response tests', function () {
                     });
                 });
                 it('valid response - wrong content-type when contentTypeValidation=false', function () {
-                    schemaEndpoint = schema['/text']['put'].responses['200'];
+                    schemaEndpoint = schema['/text'].put.responses['200'];
 
-                    let isValid = schemaEndpoint.validate({
+                    const isValid = schemaEndpoint.validate({
                         headers: {
                             'content-type': 'application/x-www-form-urlencoded',
                             'content-length': '1'
@@ -852,9 +922,9 @@ describe('oai2 - response tests', function () {
                     schema = schemaValidatorGenerator.buildSchemaSync(swaggerPath, options);
                 });
                 it('request with wrong parameter type - should pass validation due to coercion', function () {
-                    let schemaEndpoint = schema['/pets']['put'].responses['200'];
+                    const schemaEndpoint = schema['/pets'].put.responses['200'];
 
-                    let isValid = schemaEndpoint.validate({
+                    const isValid = schemaEndpoint.validate({
                         body: [{
                             id: 1,
                             name: 1,
@@ -881,9 +951,9 @@ describe('oai2 - response tests', function () {
                     schema = schemaValidatorGenerator.buildSchemaSync(swaggerPath, options);
                 });
                 it('request with wrong parameter type - should pass validation due to coercion', function () {
-                    let schemaEndpoint = schema['/pets']['put'].responses['200'];
+                    const schemaEndpoint = schema['/pets'].put.responses['200'];
 
-                    let isValid = schemaEndpoint.validate({
+                    const isValid = schemaEndpoint.validate({
                         body: [{
                             id: 1,
                             name: 1,
@@ -896,13 +966,13 @@ describe('oai2 - response tests', function () {
 
                     expect(schemaEndpoint.errors).to.be.eql([
                         {
-                            'dataPath': '.body[0].name',
-                            'keyword': 'type',
-                            'message': 'should be string',
-                            'params': {
-                                'type': 'string'
+                            dataPath: '.body[0].name',
+                            keyword: 'type',
+                            message: 'should be string',
+                            params: {
+                                type: 'string'
                             },
-                            'schemaPath': '#/body/items/properties/name/type'
+                            schemaPath: '#/body/items/properties/name/type'
                         }
                     ]);
                     expect(isValid).to.be.false;
@@ -928,7 +998,6 @@ describe('oai2 - response tests', function () {
                 }
             };
 
-            var range = require('ajv-keywords/keywords/range');
             let schema, options = {
                 keywords: [range, { name: 'prohibited', definition }],
                 expectFormFieldsInBody: true
@@ -940,9 +1009,9 @@ describe('oai2 - response tests', function () {
             });
 
             it('should pass the validation by the range keyword', function () {
-                let schemaEndpoint = schema['/keywords']['post'].responses['200'];
+                const schemaEndpoint = schema['/keywords'].post.responses['200'];
 
-                let isValid = schemaEndpoint.validate({
+                const isValid = schemaEndpoint.validate({
                     headers: {},
                     body: {
                         age: 25
@@ -954,9 +1023,9 @@ describe('oai2 - response tests', function () {
             });
             it('should be failed by the range keyword', function () {
                 // todo - wired errors
-                let schemaEndpoint = schema['/keywords']['post'].responses['200'];
+                const schemaEndpoint = schema['/keywords'].post.responses['200'];
 
-                let isValid = schemaEndpoint.validate({
+                const isValid = schemaEndpoint.validate({
                     headers: {},
                     body: {
                         age: 50
@@ -965,52 +1034,52 @@ describe('oai2 - response tests', function () {
 
                 expect(schemaEndpoint.errors).to.be.eql([
                     {
-                        'dataPath': '.body.age',
-                        'keyword': 'maximum',
-                        'message': 'should be <= 30',
-                        'params': {
-                            'comparison': '<=',
-                            'exclusive': false,
-                            'limit': 30
+                        dataPath: '.body.age',
+                        keyword: 'maximum',
+                        message: 'should be <= 30',
+                        params: {
+                            comparison: '<=',
+                            exclusive: false,
+                            limit: 30
                         },
-                        'schemaPath': '#/body/properties/age/maximum'
+                        schemaPath: '#/body/properties/age/maximum'
                     },
                     {
-                        'dataPath': '.body.age',
-                        'keyword': 'range',
-                        'message': 'should pass "range" keyword validation',
-                        'params': {
-                            'keyword': 'range'
+                        dataPath: '.body.age',
+                        keyword: 'range',
+                        message: 'should pass "range" keyword validation',
+                        params: {
+                            keyword: 'range'
                         },
-                        'schemaPath': '#/body/properties/age/range'
+                        schemaPath: '#/body/properties/age/range'
                     }
                 ]);
                 expect(isValid).to.be.false;
             });
             it('should be failed by the prohibited keyword', function () {
-                let schemaEndpoint = schema['/keywords']['post'].responses['200'];
+                const schemaEndpoint = schema['/keywords'].post.responses['200'];
 
-                let isValid = schemaEndpoint.validate({
+                const isValid = schemaEndpoint.validate({
                     headers: {},
                     body: { ages: 20, age: 20 }
                 });
 
                 expect(schemaEndpoint.errors).to.be.eql([
                     {
-                        'dataPath': '.body',
-                        'keyword': 'not',
-                        'message': 'should NOT be valid',
-                        'params': {},
-                        'schemaPath': '#/body/not'
+                        dataPath: '.body',
+                        keyword: 'not',
+                        message: 'should NOT be valid',
+                        params: {},
+                        schemaPath: '#/body/not'
                     },
                     {
-                        'dataPath': '.body',
-                        'keyword': 'prohibited',
-                        'message': 'should pass "prohibited" keyword validation',
-                        'params': {
-                            'keyword': 'prohibited'
+                        dataPath: '.body',
+                        keyword: 'prohibited',
+                        message: 'should pass "prohibited" keyword validation',
+                        params: {
+                            keyword: 'prohibited'
                         },
-                        'schemaPath': '#/body/prohibited'
+                        schemaPath: '#/body/prohibited'
                     }
                 ]);
                 expect(isValid).to.be.false;
@@ -1030,22 +1099,22 @@ describe('oai2 - response tests', function () {
             });
 
             it('bad body - wrong format body (should be an abcName format)', function () {
-                let schemaEndpoint = schema['/pets']['get'].responses['200'];
+                const schemaEndpoint = schema['/pets'].get.responses['200'];
 
-                let isValid = schemaEndpoint.validate({
+                const isValid = schemaEndpoint.validate({
                     headers: {},
                     body: { id: '111' }
                 });
 
                 expect(schemaEndpoint.errors).to.eql([
                     {
-                        'dataPath': '.body.id',
-                        'keyword': 'format',
-                        'message': 'should match format "abcName"',
-                        'params': {
-                            'format': 'abcName'
+                        dataPath: '.body.id',
+                        keyword: 'format',
+                        message: 'should match format "abcName"',
+                        params: {
+                            format: 'abcName'
                         },
-                        'schemaPath': '#/body/properties/id/format'
+                        schemaPath: '#/body/properties/id/format'
                     }
                 ]);
 
@@ -1053,9 +1122,9 @@ describe('oai2 - response tests', function () {
             });
 
             it('valid body - good format', function () {
-                let schemaEndpoint = schema['/pets']['get'].responses['200'];
+                const schemaEndpoint = schema['/pets'].get.responses['200'];
 
-                let isValid = schemaEndpoint.validate({
+                const isValid = schemaEndpoint.validate({
                     headers: {},
                     body: { id: 'abc' }
                 });
