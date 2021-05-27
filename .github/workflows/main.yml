@@ -17,7 +17,9 @@ jobs:
           node-version: ${{ matrix.node }}
       - name: install dependencies
         run: npm ci
-      - name: Lint
-        run: npm run lint
-      - name: Units Tests
-        run: npm run test:coverage
+      - name: lint + units tests + prepare coveralls
+        run: npm run test:ci
+      - name: Coveralls
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
