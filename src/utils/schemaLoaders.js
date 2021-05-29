@@ -21,7 +21,7 @@ function loadSchema(pathOrSchema, options) {
     const basePath = getSchemaBasePath(pathOrSchema, options);
     const dereferencedSchema = dereference(basePath, jsonSchema);
 
-    if (getOAIVersion(dereferencedSchema) === 3) {
+    if (!options.skipOAIValidation && getOAIVersion(dereferencedSchema) === 3) {
         const validationResult = schemaValidators.getOAI3Validator().validate(dereferencedSchema);
         if (validationResult.errors && validationResult.errors.length > 0) {
             const error = new Error('Invalid OpenAPI 3 schema');
