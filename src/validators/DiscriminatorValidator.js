@@ -26,14 +26,46 @@ function findSchemaValidation(tree, data) {
 }
 
 function discriminator(schemas, data) {
-    const schema = findSchemaValidation.call(this, schemas, data);
-    let result = false;
-    if (schema) {
-        result = schema(data);
-        this.errors = schema.errors;
+    const currentValue = schemas.getValue();
+    const subDiscriminator = currentValue.discriminator && currentValue.discriminator.startsWith('.');
+    if (!subDiscriminator) {
+        const schema = findSchemaValidation.call(this, schemas, data);
+        let result = false;
+        if (schema) {
+            result = schema(data);
+            this.errors = schema.errors;
+        }
+        return result;
     }
 
+    const validator = currentValue.validator;
+    let result = validator(data);
+    this.errors = validator.errors;
+    if (!result) return result;
+
+    const key = currentValue.discriminator.replace('.', '');
+    schemas = Object.values(schemas.childrenAsKeyValue)[0];
+    data = data[key];
+
+    const errors = [];
+    data.forEach((subData, index) => {
+        const schema = findSchemaValidation.call(this, schemas, subData);
+        if (schema) {
+            result = result && schema(subData);
+            errors.push(addErrorPrefix(schema.errors, key + `[${index}]`));
+        }
+    });
+
+    this.errors = errors.length ? errors : null;
     return result;
+}
+
+function addErrorPrefix(errors, prefix) {
+    errors.forEach(error => {
+        error.dataPath = '.' + prefix + error.dataPath;
+        error.schemaPath = error.schemaPath.replace('#', '#/' + prefix);
+    });
+    return errors;
 }
 
 module.exports = DiscriminatorValidator;

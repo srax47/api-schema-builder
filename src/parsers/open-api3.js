@@ -209,16 +209,41 @@ function buildV3Inheritance(referencedSchemas, dereferencedSchemas, ajv, referen
             ancestor.addChild(currentDiscriminatorNode, option);
         }
 
+        const subDiscriminator = discriminatorObject.discriminator.startsWith('.')
+        if (subDiscriminator) {
+            const subSchemaPropertyName = discriminatorObject.discriminator.replace('.', '')
+            const subSchema = currentSchema.properties[subSchemaPropertyName]
+            if (subSchema.type !== 'array') {
+                throw new Error('sub discriminator must be on array type');
+            }
+
+            const parentSchema = cloneDeep(currentSchema);
+            delete parentSchema.discriminator
+            parentSchema.properties[subSchemaPropertyName].items = { type: 'object' }
+            ancestor.getValue().validator = ajv.compile(parentSchema);
+
+            const ref = getKeyFromRef(subSchema.items.$ref);
+            recursiveDiscriminatorBuilder(currentDiscriminatorNode, ref, ref);
+            return;
+        }
+
         if (!currentSchema.oneOf) {
             throw new Error('oneOf must be part of discriminator');
         }
 
         const options = currentSchema.oneOf.map((refObject) => {
-            const option = findKey(currentSchema.discriminator.mapping, (value) => (value === refObject.$ref));
             const ref = getKeyFromRef(refObject.$ref);
-            return { option: option || ref, ref };
-        });
-        discriminatorObject.allowedValues = options.map((option) => option.option);
+
+            if (currentSchema.discriminator.mapping) {
+                const option = findKey(currentSchema.discriminator.mapping, (value) => (value === refObject.$ref));
+                return { option: option || ref, ref };
+            }
+
+            const discriminatorValues = dereferencedSchemas[ref].properties[currentSchema.discriminator.propertyName].enum;
+            return discriminatorValues.map(option => ({ option: option || ref, ref }));
+        }).flat();
+
+        discriminatorObject.allowedValues = options.map((option) => option.option).flat();
         options.forEach(function (optionObject) {
             recursiveDiscriminatorBuilder(currentDiscriminatorNode, optionObject.option, optionObject.ref, propertiesAcc, depth - 1);
         });
