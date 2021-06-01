@@ -56,7 +56,7 @@ function discriminator(schemas, data) {
         }
     });
 
-    this.errors = errors.length ? errors : null;
+    this.errors = errors.length ? errors.flat() : null;
     return result;
 }
 
