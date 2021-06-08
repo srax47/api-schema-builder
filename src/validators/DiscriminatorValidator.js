@@ -28,11 +28,13 @@ function discriminator(schemas, data) {
     const currentValue = schemas.getValue();
     const subDiscriminator = currentValue.discriminator && currentValue.discriminator.startsWith('.');
     if (!subDiscriminator) {
-        const { validator } = findSchemaValidation(schemas, data);
+        const { validator, error } = findSchemaValidation(schemas, data);
         let result = false;
         if (validator) {
             result = validator(data);
             this.errors = validator.errors;
+        } else if (error) {
+            this.errors = error;
         }
         return result;
     }

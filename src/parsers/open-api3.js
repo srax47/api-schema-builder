@@ -239,8 +239,12 @@ function buildV3Inheritance(referencedSchemas, dereferencedSchemas, ajv, referen
                 return { option: option || ref, ref };
             }
 
-            const discriminatorValues = dereferencedSchemas[ref].properties[currentSchema.discriminator.propertyName].enum;
-            return discriminatorValues.map(option => ({ option: option || ref, ref }));
+            const property = dereferencedSchemas[ref].properties[currentSchema.discriminator.propertyName]
+            if (!property || !property.enum) {
+                return { option: ref, ref };
+            }
+
+            return property.enum.map(option => ({ option: option || ref, ref }));
         }).flat();
 
         discriminatorObject.allowedValues = options.map((option) => option.option).flat();
