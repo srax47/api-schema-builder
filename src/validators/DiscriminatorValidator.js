@@ -34,7 +34,7 @@ function discriminator(schemas, data) {
             result = validator(data);
             this.errors = validator.errors;
         } else if (error) {
-            this.errors = error;
+            this.errors = [error];
         }
         return result;
     }
