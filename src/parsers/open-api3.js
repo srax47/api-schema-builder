@@ -105,6 +105,10 @@ function handleBodyValidation(
     ajvUtils.addCustomKeyword(ajv, formats, keywords);
 
     if (dereferencedBodySchema.discriminator) {
+        if (!referenced.components || dereferenced.components) {
+            return buildV3InheritanceDereferenced(dereferencedBodySchema, ajv);        
+        }
+
         const referencedSchemas = referenced.components.schemas;
         const dereferencedSchemas = dereferenced.components.schemas;
         const referenceName = referencedBodySchema.$ref;
@@ -167,6 +171,76 @@ function buildHeadersValidation(responses, statusCode, { ajvConfigParams, format
     ajvHeadersSchema.content = createContentTypeHeaders(contentTypeValidation, contentTypes);
 
     return new Validators.SimpleValidator(ajv.compile(ajvHeadersSchema));
+}
+
+function buildV3InheritanceDereferenced(dereferencedBodySchema, ajv) {
+    const RECURSIVE__MAX_DEPTH = 20;
+    const tree = new Node();
+
+    function recursiveDiscriminatorBuilder(ancestor, schema, allowedValue, propertiesAcc = { required: [], properties: {} }, depth = RECURSIVE__MAX_DEPTH) {
+        // assume first time is discriminator.
+        if (depth === 0) {
+            throw new Error(`swagger schema exceed maximum supported depth of ${RECURSIVE__MAX_DEPTH} for swagger definitions inheritance`);
+        }
+        const discriminator = schema.discriminator,
+            currentSchema = schema;
+
+        if (!discriminator) {
+            // need to stop and just add validator on ancesstor;
+            const newSchema = cloneDeep(currentSchema);
+            newSchema.required = newSchema.required || [];
+            newSchema.required.push(...(propertiesAcc.required || []));
+            newSchema.properties = Object.assign(newSchema.properties, propertiesAcc.properties);
+            ancestor.getValue().validators[allowedValue] = ajv.compile(newSchema); // think about key
+            return;
+        }
+        propertiesAcc = cloneDeep(propertiesAcc);
+        propertiesAcc.required.push(...(currentSchema.required || []));
+        propertiesAcc.properties = Object.assign(propertiesAcc.properties, currentSchema.properties);
+
+        const discriminatorObject = { validators: {} };
+        discriminatorObject.discriminator = discriminator.propertyName;
+
+        const currentDiscriminatorNode = new Node(discriminatorObject);
+        if (!ancestor.getValue()) {
+            ancestor.setData(currentDiscriminatorNode);
+        } else {
+            ancestor.addChild(currentDiscriminatorNode, allowedValue);
+        }
+
+        const subDiscriminator = discriminatorObject.discriminator.startsWith('.')
+        if (subDiscriminator) {
+            const subSchemaPropertyName = discriminatorObject.discriminator.replace('.', '')
+            const subSchema = currentSchema.properties[subSchemaPropertyName]
+            if (subSchema.type !== 'array') {
+                throw new Error('sub discriminator must be on array type');
+            }
+
+            const parentSchema = cloneDeep(currentSchema);
+            delete parentSchema.discriminator
+            parentSchema.properties[subSchemaPropertyName].items = { type: 'object' }
+            ancestor.getValue().validator = ajv.compile(parentSchema);
+
+            recursiveDiscriminatorBuilder(currentDiscriminatorNode, subSchema.items);
+            return;
+        }
+
+        if (!currentSchema.oneOf) {
+            throw new Error('oneOf must be part of discriminator');
+        }
+
+        discriminatorObject.allowedValues = currentSchema.oneOf.map((refObject) => 
+            refObject.properties[discriminator.propertyName].enum).flat();
+
+        currentSchema.oneOf.map((refObject) => {
+            refObject.properties[discriminator.propertyName].enum.forEach((allowedValue) => {
+                recursiveDiscriminatorBuilder(currentDiscriminatorNode, refObject, allowedValue, propertiesAcc, depth - 1);
+            })
+        });
+    }
+
+    recursiveDiscriminatorBuilder(tree, dereferencedBodySchema);
+    return new Validators.DiscriminatorValidator(tree);
 }
 
 function buildV3Inheritance(referencedSchemas, dereferencedSchemas, ajv, referenceName) {
