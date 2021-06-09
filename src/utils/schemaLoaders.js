@@ -19,7 +19,7 @@ function loadSchema(pathOrSchema, options) {
 
     const jsonSchema = getJsonSchema(pathOrSchema);
     const basePath = getSchemaBasePath(pathOrSchema, options);
-    const dereferencedSchema = dereference(basePath, jsonSchema);
+    const dereferencedSchema = options && options.dereferenced ? jsonSchema : dereference(basePath, jsonSchema);
 
     if ((!options || !options.skipOAIValidation) && getOAIVersion(dereferencedSchema) === 3) {
         const validationResult = schemaValidators.getOAI3Validator().validate(dereferencedSchema);
