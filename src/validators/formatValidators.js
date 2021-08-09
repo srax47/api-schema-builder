@@ -1,4 +1,4 @@
-const Decimal = require('decimal.js');
+const { Decimal } = require('decimal.js');
 
 const constraints = {
     int64: {
