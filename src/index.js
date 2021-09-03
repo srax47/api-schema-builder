@@ -193,7 +193,7 @@ function buildParametersValidation(parameters, contentTypes, options) {
                 title: 'HTTP query',
                 type: 'object',
                 properties: {},
-                additionalProperties: false
+                additionalProperties: options.allowQueryAdditionalProperties || false
             },
             files: {
                 title: 'HTTP form files',
