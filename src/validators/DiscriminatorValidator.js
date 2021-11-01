@@ -11,6 +11,10 @@ class DiscriminatorValidator extends Validator {
 function findSchemaValidation(tree, data) {
     const currentValue = tree.getValue();
     if (currentValue.discriminator){
+        if (currentValue.discriminator.startsWith('.')) {
+            return { schema: tree, data };
+        }
+
         const discriminatorValue = data[currentValue.discriminator];
         if (!tree.getValue().allowedValues.includes(discriminatorValue)) {
             return { error: allowedValuesError(currentValue.discriminator, currentValue.allowedValues) };
@@ -28,9 +32,13 @@ function discriminator(schemas, data) {
     const currentValue = schemas.getValue();
     const subDiscriminator = currentValue.discriminator && currentValue.discriminator.startsWith('.');
     if (!subDiscriminator) {
-        const { validator, error } = findSchemaValidation(schemas, data);
+        const { validator, error, schema, data: subData } = findSchemaValidation.call(this, schemas, data);
+
         let result = false;
-        if (validator) {
+
+        if (schema) {
+            result = discriminator.call(this, schema, subData)
+        } else if (validator) {
             result = validator(data);
             this.errors = validator.errors;
         } else if (error) {
@@ -48,17 +56,24 @@ function discriminator(schemas, data) {
     schemas = Object.values(schemas.childrenAsKeyValue)[0];
     data = data[key];
 
-    const errors = [];
-    data.forEach((subData, index) => {
-        const { validator, error } = findSchemaValidation.call(this, schemas, subData);
-        if (validator) {
-            result = result && validator(subData);
+    const errors = this.errors || [];
+    for (let index=0 ; index<data.length; index++) {
+        const subData = data[index];
+
+        const { validator, error, schema, data: validationData } = findSchemaValidation.call(this, schemas, subData);
+
+        if (schema) {
+            result = discriminator.call(this, schema, validationData);
+            errors = this.errors || errors || [];
+        } else if (validator) {
+            const subResult = validator(subData);
+            result = result && subResult;
             validator.errors && errors.push(addErrorPrefix(validator.errors, key + `[${index}]`));
         } else if(error) {
             errors.push(addErrorPrefix([error], key + `[${index}]`));
             result = false;
         }
-    });
+    }
 
     this.errors = errors.length ? errors.flat() : null;
     return result;

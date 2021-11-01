@@ -198,8 +198,10 @@ function buildV3InheritanceDereferenced(dereferencedBodySchema, ajv) {
         propertiesAcc.required.push(...(currentSchema.required || []));
         propertiesAcc.properties = Object.assign(propertiesAcc.properties, currentSchema.properties);
 
-        const discriminatorObject = { validators: {} };
-        discriminatorObject.discriminator = discriminator.propertyName;
+        const discriminatorObject = { 
+            validators: {},
+            discriminator: discriminator.propertyName,
+        };
 
         const currentDiscriminatorNode = new Node(discriminatorObject);
         if (!ancestor.getValue()) {
@@ -219,9 +221,9 @@ function buildV3InheritanceDereferenced(dereferencedBodySchema, ajv) {
             const parentSchema = cloneDeep(currentSchema);
             delete parentSchema.discriminator
             parentSchema.properties[subSchemaPropertyName].items = { type: 'object' }
-            ancestor.getValue().validator = ajv.compile(parentSchema);
+            currentDiscriminatorNode.getValue().validator = ajv.compile(parentSchema);
 
-            recursiveDiscriminatorBuilder(currentDiscriminatorNode, subSchema.items);
+            recursiveDiscriminatorBuilder(currentDiscriminatorNode, subSchema.items, allowedValue);
             return;
         }
 
@@ -240,6 +242,8 @@ function buildV3InheritanceDereferenced(dereferencedBodySchema, ajv) {
     }
 
     recursiveDiscriminatorBuilder(tree, dereferencedBodySchema);
+    console.log('tree', tree.childrenAsKeyValue?.workoutRaw)
+
     return new Validators.DiscriminatorValidator(tree);
 }
 
