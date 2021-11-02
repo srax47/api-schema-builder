@@ -1,6 +1,5 @@
 
-const Validator = require('./Validator'),
-    validatorUtils = require('./validator-utils');
+const Validator = require('./Validator');
 
 class DiscriminatorValidator extends Validator {
     constructor(schema) {
@@ -20,7 +19,7 @@ function findSchemaValidation(tree, data) {
             return { error: allowedValuesError(currentValue.discriminator, currentValue.allowedValues) };
         }
         if (tree.getValue().validators[discriminatorValue]) {
-            return { validator: tree.getValue().validators[discriminatorValue] }
+            return { validator: tree.getValue().validators[discriminatorValue] };
         }
         const newNode = tree.childrenAsKeyValue[discriminatorValue];
         return findSchemaValidation(newNode, data);
@@ -37,7 +36,7 @@ function discriminator(schemas, data) {
         let result = false;
 
         if (schema) {
-            result = discriminator.call(this, schema, subData)
+            result = discriminator.call(this, schema, subData);
         } else if (validator) {
             result = validator(data);
             this.errors = validator.errors;
@@ -56,8 +55,8 @@ function discriminator(schemas, data) {
     schemas = Object.values(schemas.childrenAsKeyValue)[0];
     data = data[key];
 
-    const errors = this.errors || [];
-    for (let index=0 ; index<data.length; index++) {
+    let errors = this.errors || [];
+    for (let index = 0; index < data.length; index++) {
         const subData = data[index];
 
         const { validator, error, schema, data: validationData } = findSchemaValidation.call(this, schemas, subData);
@@ -69,7 +68,7 @@ function discriminator(schemas, data) {
             const subResult = validator(subData);
             result = result && subResult;
             validator.errors && errors.push(addErrorPrefix(validator.errors, key + `[${index}]`));
-        } else if(error) {
+        } else if (error) {
             errors.push(addErrorPrefix([error], key + `[${index}]`));
             result = false;
         }
@@ -95,7 +94,7 @@ function allowedValuesError(discriminator, allowedValues) {
         allowedValues: allowedValues
     };
     error.schemaPath = '#/properties/' + discriminator;
-    return error
+    return error;
 }
 
 module.exports = DiscriminatorValidator;

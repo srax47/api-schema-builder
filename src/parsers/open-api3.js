@@ -106,7 +106,7 @@ function handleBodyValidation(
 
     if (dereferencedBodySchema.discriminator) {
         if (!referenced.components || dereferenced.components) {
-            return buildV3InheritanceDereferenced(dereferencedBodySchema, ajv);        
+            return buildV3InheritanceDereferenced(dereferencedBodySchema, ajv);
         }
 
         const referencedSchemas = referenced.components.schemas;
@@ -198,9 +198,9 @@ function buildV3InheritanceDereferenced(dereferencedBodySchema, ajv) {
         propertiesAcc.required.push(...(currentSchema.required || []));
         propertiesAcc.properties = Object.assign(propertiesAcc.properties, currentSchema.properties);
 
-        const discriminatorObject = { 
+        const discriminatorObject = {
             validators: {},
-            discriminator: discriminator.propertyName,
+            discriminator: discriminator.propertyName
         };
 
         const currentDiscriminatorNode = new Node(discriminatorObject);
@@ -210,17 +210,17 @@ function buildV3InheritanceDereferenced(dereferencedBodySchema, ajv) {
             ancestor.addChild(currentDiscriminatorNode, allowedValue);
         }
 
-        const subDiscriminator = discriminatorObject.discriminator.startsWith('.')
+        const subDiscriminator = discriminatorObject.discriminator.startsWith('.');
         if (subDiscriminator) {
-            const subSchemaPropertyName = discriminatorObject.discriminator.replace('.', '')
-            const subSchema = currentSchema.properties[subSchemaPropertyName]
+            const subSchemaPropertyName = discriminatorObject.discriminator.replace('.', '');
+            const subSchema = currentSchema.properties[subSchemaPropertyName];
             if (subSchema.type !== 'array') {
                 throw new Error('sub discriminator must be on array type');
             }
 
             const parentSchema = cloneDeep(currentSchema);
-            delete parentSchema.discriminator
-            parentSchema.properties[subSchemaPropertyName].items = { type: 'object' }
+            delete parentSchema.discriminator;
+            parentSchema.properties[subSchemaPropertyName].items = { type: 'object' };
             currentDiscriminatorNode.getValue().validator = ajv.compile(parentSchema);
 
             recursiveDiscriminatorBuilder(currentDiscriminatorNode, subSchema.items, allowedValue);
@@ -231,19 +231,17 @@ function buildV3InheritanceDereferenced(dereferencedBodySchema, ajv) {
             throw new Error('oneOf must be part of discriminator');
         }
 
-        discriminatorObject.allowedValues = currentSchema.oneOf.map((refObject) => 
+        discriminatorObject.allowedValues = currentSchema.oneOf.map((refObject) =>
             refObject.properties[discriminator.propertyName].enum).flat();
 
         currentSchema.oneOf.map((refObject) => {
             refObject.properties[discriminator.propertyName].enum.forEach((allowedValue) => {
                 recursiveDiscriminatorBuilder(currentDiscriminatorNode, refObject, allowedValue, propertiesAcc, depth - 1);
-            })
+            });
         });
     }
 
     recursiveDiscriminatorBuilder(tree, dereferencedBodySchema);
-    console.log('tree', tree.childrenAsKeyValue?.workoutRaw)
-
     return new Validators.DiscriminatorValidator(tree);
 }
 
@@ -287,17 +285,17 @@ function buildV3Inheritance(referencedSchemas, dereferencedSchemas, ajv, referen
             ancestor.addChild(currentDiscriminatorNode, option);
         }
 
-        const subDiscriminator = discriminatorObject.discriminator.startsWith('.')
+        const subDiscriminator = discriminatorObject.discriminator.startsWith('.');
         if (subDiscriminator) {
-            const subSchemaPropertyName = discriminatorObject.discriminator.replace('.', '')
-            const subSchema = currentSchema.properties[subSchemaPropertyName]
+            const subSchemaPropertyName = discriminatorObject.discriminator.replace('.', '');
+            const subSchema = currentSchema.properties[subSchemaPropertyName];
             if (subSchema.type !== 'array') {
                 throw new Error('sub discriminator must be on array type');
             }
 
             const parentSchema = cloneDeep(currentSchema);
-            delete parentSchema.discriminator
-            parentSchema.properties[subSchemaPropertyName].items = { type: 'object' }
+            delete parentSchema.discriminator;
+            parentSchema.properties[subSchemaPropertyName].items = { type: 'object' };
             ancestor.getValue().validator = ajv.compile(parentSchema);
 
             const ref = getKeyFromRef(subSchema.items.$ref);
@@ -317,7 +315,7 @@ function buildV3Inheritance(referencedSchemas, dereferencedSchemas, ajv, referen
                 return { option: option || ref, ref };
             }
 
-            const property = dereferencedSchemas[ref].properties[currentSchema.discriminator.propertyName]
+            const property = dereferencedSchemas[ref].properties[currentSchema.discriminator.propertyName];
             if (!property || !property.enum) {
                 return { option: ref, ref };
             }
